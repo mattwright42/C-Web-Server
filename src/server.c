@@ -52,7 +52,7 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
 {
     const int max_response_size = 262144;
     char response[max_response_size];
-    int response_length = strlen(response);
+    int response_length = strlen(response); //0
     char *new_body = body;
 
     time_t rawtime;
@@ -180,7 +180,7 @@ void handle_http_request(int fd, struct cache *cache)
     sscanf(request, "%s %s", method, path);
     // If GET, handle the get endpoints
     // Check if it's /d20 and handle that special case
-    if (strcmp(method, "GET") == 0 & strcmp(path, "/d20") == 0)
+    if (strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0)
     {
         get_d20(fd);
     }
