@@ -139,6 +139,28 @@ void get_file(int fd, struct cache *cache, char *request_path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    char filepath[4096];
+    struct file_data *filedata;
+
+    //construct the full file path
+    snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
+    filedata = file_load(filepath);
+
+    //check to see if file_load returned a valid file
+    if (filedata == NULL)
+    {
+        resp_404(fd);
+        return;
+    }
+
+    char *mime_type = mime_type_get(filepath);
+
+    //we fetched a valid file; make sure we send it!
+    send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+
+    //free the file data struct after it's been sent
+    file_free(filedata);
 }
 
 /**
@@ -178,6 +200,7 @@ void handle_http_request(int fd, struct cache *cache)
     char path[8192];
     // Read the three components of the first request line
     sscanf(request, "%s %s", method, path);
+    printf("REQUEST: %s %s\n", method, path);
     // If GET, handle the get endpoints
     // Check if it's /d20 and handle that special case
     if (strcmp(method, "GET") == 0 && strcmp(path, "/d20") == 0)
