@@ -91,17 +91,12 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
  */
 void get_d20(int fd)
 {
+    char body[3];
     // Generate a random number between 1 and 20 inclusive
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
-
+    int rand_int = rand() % 21;
+    sprintf(body, "%d", rand_int);
     // Use send_response() to send it back as text/plain data
-
-    ///////////////////
-    // IMPLEMENT ME! //
-    ///////////////////
+    send_response(fd, "HTTP/1.1 200 OK", "text/plain", body, strlen(body));
 }
 
 /**
@@ -142,19 +137,30 @@ void get_file(int fd, struct cache *cache, char *request_path)
 
     char filepath[4096];
     struct file_data *filedata;
+    char *mime_type;
 
     //construct the full file path
     snprintf(filepath, sizeof filepath, "%s/%s", SERVER_ROOT, request_path);
     filedata = file_load(filepath);
 
     //check to see if file_load returned a valid file
-    if (filedata == NULL)
+    if (filedata == NULL && strcmp(request_path, "/") == 0)
     {
-        resp_404(fd);
+        fprintf(stderr, "Could not find %s\n", request_path);
+        snprintf(filepath, sizeof filepath, "%s/index.html", SERVER_ROOT);
+        filedata = file_load(filepath);
+        mime_type = mime_type_get(filepath);
+        send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
+        file_free(filedata);
         return;
     }
+    else if (filedata == NULL)
+    {
+        fprintf(stderr, "Could not find %s\n", request_path);
+        exit(3);
+    }
 
-    char *mime_type = mime_type_get(filepath);
+    mime_type = mime_type_get(filepath);
 
     //we fetched a valid file; make sure we send it!
     send_response(fd, "HTTP/1.1 200 OK", mime_type, filedata->data, filedata->size);
@@ -209,7 +215,7 @@ void handle_http_request(int fd, struct cache *cache)
     }
     else
     {
-        resp_404(fd);
+        get_file(fd, cache, path);
     }
     // Otherwise serve the requested file by calling get_file()
     // (Stretch) If POST, handle the post request
