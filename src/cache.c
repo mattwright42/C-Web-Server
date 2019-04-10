@@ -138,6 +138,17 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    struct cache_entry *new_entry = alloc_entry(path, content_type, content, content_length);
+    dllist_move_to_head(cache, new_entry);
+    hashtable_put(cache->index, path, content);
+    cache->cur_size++;
+    if (cache->cur_size > cache->max_size)
+    {
+        struct cache_entry *removed_entry = dllist_remove_tail(cache);
+        hashtable_delete(cache->index, removed_entry);
+        free_entry(removed_entry);
+        cache->cur_size--;
+    }
 }
 
 /**
