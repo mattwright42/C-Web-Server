@@ -126,6 +126,17 @@ struct cache *cache_create(int max_size, int hashsize)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+
+    struct cache *create_cache = malloc(sizeof(*create_cache));
+    struct hashtable *hashtable = hashtable_create(hashsize, NULL);
+
+    create_cache->head = NULL;
+    create_cache->tail = NULL;
+    create_cache->cur_size = 0;
+    create_cache->max_size = max_size;
+    create_cache->index = hashtable;
+
+    return create_cache;
 }
 
 void cache_free(struct cache *cache)

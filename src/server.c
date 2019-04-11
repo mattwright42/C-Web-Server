@@ -55,12 +55,11 @@ int send_response(int fd, char *header, char *content_type, void *body, int cont
     int response_length = 0; //0
 
     time_t t = time(NULL);
-    struct tim *timestamp;
 
     response_length = sprintf(
         response,
         "%s\n"
-        "Date: %s\n"
+        "Date: %s"
         "Connection: close \n"
         "Content-Length: %d\n"
         "Content-Type: %s\n"
@@ -216,7 +215,9 @@ void handle_http_request(int fd, struct cache *cache)
     // If GET, handle the get endpoints
     // Check if it's /d20 and handle that special case
 
-    resp_404(fd);
+    sscanf(request, "%s %s", request_type, request_path);
+
+    printf("REQUEST: %s %s\n", request_type, request_path);
 
     if (strcmp(request_type, "GET") == 0 && strcmp(request_path, "/d20") == 0)
     {
