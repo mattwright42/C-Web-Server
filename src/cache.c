@@ -13,10 +13,26 @@ struct cache_entry *alloc_entry(char *path, char *content_type, void *content, i
     // IMPLEMENT ME! //
     ///////////////////
     struct cache_entry *new_entry = malloc(sizeof(struct cache_entry));
-    new_entry->path = path;
-    new_entry->content_type = content_type;
-    new_entry->content = content;
-    new_entry->content_length;
+    // new_entry->path = path;
+    // new_entry->content_type = content_type;
+    // new_entry->content = content;
+    // new_entry->content_length;
+
+    // get the memory for the path string
+    new_entry->path = malloc(strlen(path) + 1);
+    strcpy(new_entry->path, path);
+
+    // get the memory for the content_type string
+    new_entry->content_type = malloc(strlen(content_type) + 1);
+    strcpy(new_entry->content_type, content_type);
+
+    // get the memory for the content string
+    // Make sure to use content_length in case of binary data
+    new_entry->content = malloc(content_length + 1);
+    memcpy(new_entry->content, content, content_length);
+
+    // get the memory for the content_length
+    new_entry->content_length = content_length;
 
     return new_entry;
 }
@@ -29,6 +45,10 @@ void free_entry(struct cache_entry *entry)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    free(entry->path);
+    free(entry->content_type);
+    free(entry->content);
+    free(entry);
 }
 
 /**
@@ -145,7 +165,7 @@ void cache_put(struct cache *cache, char *path, char *content_type, void *conten
     if (cache->cur_size > cache->max_size)
     {
         struct cache_entry *removed_entry = dllist_remove_tail(cache);
-        hashtable_delete(cache->index, removed_entry);
+        hashtable_delete(cache->index, removed_entry->path);
         free_entry(removed_entry);
         cache->cur_size--;
     }
@@ -159,4 +179,14 @@ struct cache_entry *cache_get(struct cache *cache, char *path)
     ///////////////////
     // IMPLEMENT ME! //
     ///////////////////
+    void *data = hashtable_get(cache->index, path);
+    if (data == NULL)
+    {
+        return NULL;
+    }
+    else
+    {
+        dllist_move_to_head(cache, data);
+        return cache->head;
+    }
 }
